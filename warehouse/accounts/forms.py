@@ -210,5 +210,4 @@ class RequestPasswordResetForm(forms.Form):
 
 
 class ResetPasswordForm(NewPasswordMixin, forms.Form):
-
     pass

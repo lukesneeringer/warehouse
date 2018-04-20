@@ -19,7 +19,7 @@ from sqlalchemy import func
 from sqlalchemy.orm.exc import NoResultFound
 
 from warehouse.accounts.interfaces import IUserService
-from warehouse.accounts.models import User, Email
+from warehouse.accounts.models import User, Email, Token
 from warehouse.accounts.views import logout
 from warehouse.email import (
     send_account_deletion_email, send_added_as_collaborator_email,
@@ -28,7 +28,7 @@ from warehouse.email import (
 )
 from warehouse.manage.forms import (
     AddEmailForm, ChangePasswordForm, CreateRoleForm, ChangeRoleForm,
-    SaveAccountForm,
+    SaveAccountForm, TokenForm,
 )
 from warehouse.packaging.models import (
     File, JournalEntry, Project, Release, Role,
@@ -88,6 +88,7 @@ class ManageAccountViews:
                 user_service=self.user_service
             ),
             'active_projects': self.active_projects,
+            'token_form': TokenForm(),
         }
 
     @view_config(request_method="GET")
@@ -238,6 +239,25 @@ class ManageAccountViews:
 
         return self.default_response
 
+    @view_config(
+        request_method="POST",
+        request_param=TokenForm.__params__,
+    )
+    def add_new_token(self):
+        form = TokenForm(self.request.POST)
+
+        if form.validate():
+            token = Token(
+                user_name=self.request.user.username,
+                description=form.description,
+            )
+            self.db.add(token)
+            self.db.flush()
+
+        return {
+            **self.default_response,
+            'token_form': form,
+        }
     @view_config(
         request_method='POST',
         request_param=ChangePasswordForm.__params__,
