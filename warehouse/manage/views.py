@@ -282,6 +282,10 @@ class ManageAccountViews:
 
             self.request.db.delete(token)
 
+            self.request.session.flash(
+                'Token deleted', queue='success'
+            )
+
         except NoResultFound:
             self.request.session.flash(
                 'Token not found', queue='error'
