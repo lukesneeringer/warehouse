@@ -88,6 +88,8 @@ class ChangePasswordForm(PasswordMixin, NewPasswordMixin, forms.Form):
 class TokenForm(forms.Form):
     """A form to add a token."""
 
+    __params__ = ['description']
+
     description = wtforms.StringField(
         validators=[
             wtforms.validators.DataRequired(),

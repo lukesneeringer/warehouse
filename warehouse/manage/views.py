@@ -244,20 +244,21 @@ class ManageAccountViews:
         request_param=TokenForm.__params__,
     )
     def add_new_token(self):
-        form = TokenForm(self.request.POST)
+        form = TokenForm(**self.request.POST)
 
         if form.validate():
             token = Token(
-                user_name=self.request.user.username,
-                description=form.description,
+                username=self.request.user.username,
+                description=form.description.data,
             )
-            self.db.add(token)
-            self.db.flush()
+            self.request.db.add(token)
+            self.request.db.flush()
 
         return {
             **self.default_response,
             'token_form': form,
         }
+
     @view_config(
         request_method='POST',
         request_param=ChangePasswordForm.__params__,

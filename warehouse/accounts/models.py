@@ -106,8 +106,8 @@ class Token(db.Model):
     # and will be used to distinguish this token from others which
     # may otherwise be equivalent.
 
-    user_name = Column(
-        String(length=100),
+    username = Column(
+        CIText,
         ForeignKey(
             "accounts_user.username",
             onupdate="CASCADE",
