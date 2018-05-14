@@ -80,6 +80,13 @@ class ManageAccountViews:
         )
 
     @property
+    def active_tokens(self):
+        '''Return all active tokens.'''
+        return self.request.db.query(Token).filter(
+            Token.username == self.request.user.username,
+        )
+
+    @property
     def default_response(self):
         return {
             'save_account_form': SaveAccountForm(name=self.request.user.name),
@@ -89,6 +96,7 @@ class ManageAccountViews:
             ),
             'active_projects': self.active_projects,
             'token_form': TokenForm(),
+            'tokens': self.active_tokens,
         }
 
     @view_config(request_method="GET")

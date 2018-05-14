@@ -228,11 +228,13 @@
       </thead>
       <tbody>
         {% for token in tokens %}
+        <tr>
           <td>{{ token.description }}</td>
-          <td>{{ token.token }}</td>
+          <td><tt>{{ token.id }}</tt></td>
           <td>
             Remove
           </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
