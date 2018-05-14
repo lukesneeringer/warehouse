@@ -12,6 +12,7 @@
 
 from collections import defaultdict
 
+from pymacaroons import Macaroon
 from pyramid.httpexceptions import HTTPSeeOther
 from pyramid.security import Authenticated
 from pyramid.view import view_config, view_defaults
@@ -261,6 +262,20 @@ class ManageAccountViews:
             )
             self.request.db.add(token)
             self.request.db.flush()
+
+            macaroon = Macaroon(
+                location='pypi.org',
+                identifier=self.request.registry.settings['token_api.id'],
+                key=self.request.registry.settings['token_api.secret'],
+            )
+
+            macaroon.add_first_party_caveat(f'id: {token.id}')
+
+            self.request.session.flash(
+                'Here is your API key, save it in a safe place: '
+                f'{macaroon.serialize()}',
+                queue='success',
+            )
 
         return {
             **self.default_response,

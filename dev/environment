@@ -33,3 +33,6 @@ TOKEN_EMAIL_SECRET="an insecure email verification secret key"
 DATADOG_HOST=notdatadog
 
 WAREHOUSE_LEGACY_DOMAIN=pypi.python.org
+
+TOKEN_API_SECRET="an insecure token api secret"
+TOKEN_API_PUBLIC_ID="a public token api id"
