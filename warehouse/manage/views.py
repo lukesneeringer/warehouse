@@ -269,6 +269,17 @@ class ManageAccountViews:
 
     @view_config(
         request_method='POST',
+        request_param=['token_id'],
+    )
+    def delete_token(self):
+        # XXX - do stuff
+        print('Got {}'.format(self.request.params))
+        return {
+            **self.default_response,
+        }
+
+    @view_config(
+        request_method='POST',
         request_param=ChangePasswordForm.__params__,
     )
     def change_password(self):

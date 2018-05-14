@@ -232,7 +232,13 @@
           <td>{{ token.description }}</td>
           <td><tt>{{ token.id }}</tt></td>
           <td>
-            Remove
+            <form method="POST">
+              <input hidden name="token_id" value="{{ token.id }}">
+              <input name="csrf_token" type="hidden" value="{{ request.session.get_csrf_token() }}">
+              <button class="button button--danger" type="submit" title="Remove token">
+                Remove
+              </button>
+            </form>
           </td>
         </tr>
         {% endfor %}
