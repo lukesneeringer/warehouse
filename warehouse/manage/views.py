@@ -272,11 +272,22 @@ class ManageAccountViews:
         request_param=['token_id'],
     )
     def delete_token(self):
-        # XXX - do stuff
-        print('Got {}'.format(self.request.params))
-        return {
-            **self.default_response,
-        }
+        token_id = self.request.params.get('token_id')
+
+        try:
+            token = self.request.db.query(Token).filter(
+                Token.id == token_id,
+                Token.username == self.request.user.username,
+                ).one()
+
+            self.request.db.delete(token)
+
+        except NoResultFound:
+            self.request.session.flash(
+                'Token not found', queue='error'
+            )
+
+        return self.default_response
 
     @view_config(
         request_method='POST',
