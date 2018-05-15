@@ -10,13 +10,101 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pymacaroons import Macaroon, Verifier
+from pymacaroons.exceptions import MacaroonException
+
 from pyramid.authentication import (
     BasicAuthAuthenticationPolicy as _BasicAuthAuthenticationPolicy,
+    CallbackAuthenticationPolicy as _CallbackAuthenticationPolicy,
     SessionAuthenticationPolicy as _SessionAuthenticationPolicy,
 )
 
+from sqlalchemy.orm.exc import NoResultFound
+
+import warehouse.accounts
 from warehouse.accounts.interfaces import IUserService
+from warehouse.accounts.models import Token
 from warehouse.cache.http import add_vary_callback
+
+
+class ApiTokenAuthenticationPolicy(_CallbackAuthenticationPolicy):
+
+    def __init__(self, authenticate):
+        self._authenticate = authenticate
+        self.callback = self._api_token_auth_callback
+
+    def unauthenticated_userid(self, request):
+        api_token = request.params.get('api_token')
+
+        if api_token is None:
+            return None
+
+        try:
+            macaroon = Macaroon.deserialize(api_token)
+
+            # First, check identifier and location
+            if macaroon.identifier != request.registry.settings['token_api.id']:
+                return None
+
+            if macaroon.location != 'pypi.org':
+                return None
+
+            # Check the macaroon against our configuration
+            verifier = Verifier()
+            verifier.satisfy_general(self._validate_first_party_caveat)
+
+            verified = verifier.verify(
+                macaroon, request.registry.settings['token_api.secret'],
+            )
+
+            if verified:
+                # Get id from token
+                token_id = None
+
+                for each in macaroon.first_party_caveats():
+                    caveat = each.to_dict()
+                    caveat_parts = caveat['cid'].split(': ')
+                    caveat_key = caveat_parts[0]
+                    caveat_value = ': '.join(caveat_parts[1:])
+
+                    if caveat_key == 'id':
+                        token_id = caveat_value
+                        break
+
+                if token_id is not None:
+                    # Look up user from token_id
+                    token = request.db.query(Token).filter(
+                        Token.id == token_id,
+                        ).one()
+
+                    username = token.username
+                    login_service = request.find_service(
+                        IUserService, context=None,
+                    )
+
+                    return login_service.find_userid(username)
+
+        except (MacaroonException, NoResultFound) as e:
+            return None
+
+    def remember(self, request, userid, **kw):
+        """A no-op. Let other authenticators handle this."""
+        return []
+
+    def forget(self, request):
+        """ A no-op. Let other authenticators handle this."""
+        return []
+
+
+    def _validate_first_party_caveat(self, caveat):
+        # Only support 'id' caveat for now
+        if caveat.split(': ')[0] not in ['id']:
+            return False
+
+        return True
+
+    def _api_token_auth_callback(self, userid, request):
+        return self._authenticate(userid, request)
 
 
 class BasicAuthAuthenticationPolicy(_BasicAuthAuthenticationPolicy):

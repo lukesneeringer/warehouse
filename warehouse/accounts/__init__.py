@@ -20,7 +20,8 @@ from warehouse.accounts.services import (
     database_login_factory, TokenServiceFactory
 )
 from warehouse.accounts.auth_policy import (
-    BasicAuthAuthenticationPolicy, SessionAuthenticationPolicy,
+    ApiTokenAuthenticationPolicy, BasicAuthAuthenticationPolicy,
+    SessionAuthenticationPolicy,
 )
 from warehouse.rate_limiting import RateLimit, IRateLimiter
 
@@ -84,6 +85,7 @@ def includeme(config):
     # Register our authentication and authorization policies
     config.set_authentication_policy(
         MultiAuthenticationPolicy([
+            ApiTokenAuthenticationPolicy(authenticate=_authenticate),
             SessionAuthenticationPolicy(callback=_authenticate),
             BasicAuthAuthenticationPolicy(check=_login),
         ]),
