@@ -118,6 +118,7 @@ class Token(db.Model):
     description = Column(String(length=100))
     is_active = Column(Boolean, server_default="TRUE")
     created = Column(DateTime, server_default=sql.func.now())
+    last_used = Column(DateTime, nullable=True)
 
 
 class UnverifyReasons(enum.Enum):

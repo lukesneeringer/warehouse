@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+
 from pymacaroons import Macaroon, Verifier
 from pymacaroons.exceptions import MacaroonException
 
@@ -82,7 +84,16 @@ class ApiTokenAuthenticationPolicy(_CallbackAuthenticationPolicy):
                     # Look up user from token_id
                     token = request.db.query(Token).filter(
                         Token.id == token_id,
-                        ).one()
+                    ).one()
+
+                    # Update that token was used
+                    request.db.query(Token).filter(
+                        Token.id == token_id,
+                    ).update(values={
+                        'last_used': datetime.datetime.utcnow()
+                    })
+
+                    request.db.flush()
 
                     username = token.username
                     login_service = request.find_service(

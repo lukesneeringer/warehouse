@@ -223,6 +223,7 @@
         <tr>
           <th>Description</th>
           <th>Token</th>
+          <th>Last Used</th>
           <th></th>
         </tr>
       </thead>
@@ -231,6 +232,7 @@
         <tr>
           <td>{{ token.description }}</td>
           <td><tt>{{ token.id }}</tt></td>
+          <td>{% if not token.last_used %} Never {% else %} {{ token.last_used.strftime('%Y-%m-%d %H:%M:%S') }} {% endif %}</td>
           <td>
             <form method="POST">
               <input hidden name="token_id" value="{{ token.id }}">
