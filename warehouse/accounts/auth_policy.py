@@ -33,7 +33,14 @@ class ApiTokenAuthenticationPolicy(_CallbackAuthenticationPolicy):
         self._authenticate = authenticate
         self.callback = self._api_token_auth_callback
 
+        self._routes_allowed = [
+            'forklift.legacy.file_upload',
+        ]
+
     def unauthenticated_userid(self, request):
+        if request.matched_route.name not in self._routes_allowed:
+            return None
+
         api_token = request.params.get('api_token')
 
         if api_token is None:
