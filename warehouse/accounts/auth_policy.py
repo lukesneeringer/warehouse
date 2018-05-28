@@ -69,6 +69,7 @@ class ApiTokenAuthenticationPolicy(_CallbackAuthenticationPolicy):
             if verified:
                 # Get id from token
                 token_id = None
+                package = None
 
                 for each in macaroon.first_party_caveats():
                     caveat = each.to_dict()
@@ -78,7 +79,12 @@ class ApiTokenAuthenticationPolicy(_CallbackAuthenticationPolicy):
 
                     if caveat_key == 'id':
                         token_id = caveat_value
-                        break
+
+                    elif caveat_key == 'package':
+                        package = caveat_value
+
+                if package is not None:
+                    request.session['api_token_package'] = package
 
                 if token_id is not None:
                     # Look up user from token_id
@@ -113,10 +119,9 @@ class ApiTokenAuthenticationPolicy(_CallbackAuthenticationPolicy):
         """ A no-op. Let other authenticators handle this."""
         return []
 
-
     def _validate_first_party_caveat(self, caveat):
         # Only support 'id' caveat for now
-        if caveat.split(': ')[0] not in ['id']:
+        if caveat.split(': ')[0] not in ['id', 'package']:
             return False
 
         return True
